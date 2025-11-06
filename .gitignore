@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Google Sheets credentials
+backend/credentials.json
+backend/token.json
+backend/.env

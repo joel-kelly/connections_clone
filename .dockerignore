@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+*.md
+docs/
+.vscode/
+.idea/
+dist
+build
+
+# Keep credentials for backend
+!backend/credentials.json
