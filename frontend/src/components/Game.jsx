@@ -120,6 +120,7 @@ function Game() {
 
   const handleSubmit = () => {
     if (selectedWords.length !== 4) return
+    if (gameWon || gameLost) return // Prevent submitting after game ends
 
     const selectedTexts = selectedWords.map(w => w.text)
 
@@ -159,7 +160,9 @@ function Game() {
       3: '🟪',
     }
     const categoryIndex = puzzle.categories.findIndex(c => c.name === category.name)
-    const newGuess = { words: guessedWords, color: colorMap[categoryIndex], correct: true }
+    const categoryColor = colorMap[categoryIndex]
+    // For correct guesses, all 4 words have the same color
+    const newGuess = { words: guessedWords, colors: [categoryColor, categoryColor, categoryColor, categoryColor], correct: true }
     setGuessHistory([...guessHistory, newGuess])
 
     // Remove found words
@@ -178,8 +181,25 @@ function Game() {
     const newMistakes = mistakes + 1
     setMistakes(newMistakes)
 
-    // Record the guess
-    const newGuess = { words: guessedWords, correct: false }
+    // Record the guess with actual colors of each word
+    const colorMap = {
+      0: '🟨',
+      1: '🟩',
+      2: '🟦',
+      3: '🟪',
+    }
+
+    // Find which category each word belongs to
+    const guessColors = guessedWords.map(word => {
+      for (let i = 0; i < puzzle.categories.length; i++) {
+        if (puzzle.categories[i].words.includes(word)) {
+          return colorMap[i]
+        }
+      }
+      return '⬜' // fallback for words not found
+    })
+
+    const newGuess = { words: guessedWords, colors: guessColors, correct: false }
     setGuessHistory([...guessHistory, newGuess])
 
     setSelectedWords([])
@@ -201,21 +221,15 @@ function Game() {
   }
 
   const handleShare = async () => {
-    const colorMap = {
-      0: '🟨',
-      1: '🟩',
-      2: '🟦',
-      3: '🟪',
-    }
-
     let shareText = `Connections #${puzzleId}\n`
 
-    // Add each guess as a row
-    guessHistory.filter(g => g.correct).forEach(guess => {
-      shareText += guess.color.repeat(4) + '\n'
+    // Add each guess as a row (both correct and wrong)
+    guessHistory.forEach(guess => {
+      // Each guess has a colors array with 4 emojis
+      shareText += guess.colors.join('') + '\n'
     })
 
-    // Add mistakes
+    // Add status
     if (gameLost) {
       shareText += `\n❌ Lost after ${MAX_MISTAKES} mistakes`
     }
