@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle, Circle } from 'lucide-react'
+import { ArrowLeft, Circle } from 'lucide-react'
 
 function PuzzleList() {
   const navigate = useNavigate()
@@ -41,6 +41,20 @@ function PuzzleList() {
     return state?.gameWon === true
   }
 
+  const getAchievementBadge = (puzzleId) => {
+    const state = getGameState(puzzleId)
+    if (!state?.gameWon) return null
+
+    const achievementEmojis = {
+      'mindreader': '🧠',
+      'reverse-rainbow': '🌈',
+      'perfect': '⭐',
+      'phew': '😅',
+    }
+
+    return achievementEmojis[state.achievement] || '✅'
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -67,6 +81,7 @@ function PuzzleList() {
         {puzzles.map((puzzle, index) => {
           const completed = isPuzzleCompleted(puzzle.id)
           const state = getGameState(puzzle.id)
+          const badge = getAchievementBadge(puzzle.id)
 
           return (
             <motion.div
@@ -84,7 +99,7 @@ function PuzzleList() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
                       {completed ? (
-                        <CheckCircle className="text-green-600" size={20} />
+                        <div className="text-2xl">{badge}</div>
                       ) : state?.foundCategories?.length > 0 ? (
                         <div className="text-sm text-gray-500">
                           {state.foundCategories.length}/4

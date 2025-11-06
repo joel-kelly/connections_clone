@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Shuffle, Share2 } from 'lucide-react'
 import WordGrid from './WordGrid'
 import CategoryDisplay from './CategoryDisplay'
+import Confetti from './Confetti'
+import AchievementToast from './AchievementToast'
 
 function Game() {
   const { puzzleId } = useParams()
@@ -20,6 +22,8 @@ function Game() {
   const [message, setMessage] = useState('')
   const [guessHistory, setGuessHistory] = useState([])
   const [loading, setLoading] = useState(true)
+  const [achievement, setAchievement] = useState(null)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   const MAX_MISTAKES = 4
 
@@ -29,7 +33,7 @@ function Game() {
 
   useEffect(() => {
     saveGameState()
-  }, [words, selectedWords, foundCategories, mistakes, gameWon, gameLost, guessHistory])
+  }, [words, selectedWords, foundCategories, mistakes, gameWon, gameLost, guessHistory, achievement])
 
   const loadPuzzle = async () => {
     try {
@@ -49,6 +53,7 @@ function Game() {
           setGameWon(state.gameWon || false)
           setGameLost(state.gameLost || false)
           setGuessHistory(state.guessHistory || [])
+          setAchievement(state.achievement || null)
         } else {
           // Saved state is invalid, initialize new game
           const allWords = [
@@ -90,6 +95,7 @@ function Game() {
       gameWon,
       gameLost,
       guessHistory,
+      achievement,
     }
     localStorage.setItem(`game_${puzzleId}`, JSON.stringify(state))
   }
@@ -101,6 +107,27 @@ function Game() {
       ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
     return shuffled
+  }
+
+  const calculateAchievement = (newFoundCategories, currentMistakes) => {
+    // Must win with no mistakes for special achievements
+    if (currentMistakes === 0) {
+      // Check if solved in yellow → green → blue → purple order
+      const solvedOrder = newFoundCategories.map(cat => cat.difficulty)
+      const isMindreader = JSON.stringify(solvedOrder) === JSON.stringify([0, 1, 2, 3])
+      const isReverseRainbow = JSON.stringify(solvedOrder) === JSON.stringify([3, 2, 1, 0])
+
+      if (isMindreader) return 'mindreader'
+      if (isReverseRainbow) return 'reverse-rainbow'
+      return 'perfect'
+    }
+
+    // Check for "Phew" - exactly 3 mistakes (1 life remaining)
+    if (currentMistakes === 3) {
+      return 'phew'
+    }
+
+    return null // Regular completion
   }
 
   const handleWordClick = (word) => {
@@ -177,6 +204,14 @@ function Game() {
     // Check if game is won
     if (newFoundCategories.length === 4) {
       setGameWon(true)
+      // Calculate achievement
+      const earnedAchievement = calculateAchievement(newFoundCategories, mistakes)
+      setAchievement(earnedAchievement)
+      // Show confetti for achievements
+      if (earnedAchievement) {
+        setShowConfetti(true)
+        setTimeout(() => setShowConfetti(false), 5000)
+      }
     }
   }
 
@@ -264,6 +299,8 @@ function Game() {
     setGameWon(false)
     setGameLost(false)
     setGuessHistory([])
+    setAchievement(null)
+    setShowConfetti(false)
   }
 
   if (loading) {
@@ -287,6 +324,10 @@ function Game() {
 
   return (
     <div className="min-h-screen max-w-2xl mx-auto px-4 py-4 md:py-8">
+      {/* Confetti and Achievement Toast */}
+      {showConfetti && <Confetti />}
+      <AchievementToast achievement={achievement} isVisible={showConfetti} />
+
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <button
