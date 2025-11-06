@@ -42,12 +42,25 @@ function Game() {
       const savedState = localStorage.getItem(`game_${puzzleId}`)
       if (savedState) {
         const state = JSON.parse(savedState)
-        setWords(state.words)
-        setFoundCategories(state.foundCategories || [])
-        setMistakes(state.mistakes || 0)
-        setGameWon(state.gameWon || false)
-        setGameLost(state.gameLost || false)
-        setGuessHistory(state.guessHistory || [])
+        // Only use saved state if it has words
+        if (state.words && state.words.length > 0) {
+          setWords(state.words)
+          setFoundCategories(state.foundCategories || [])
+          setMistakes(state.mistakes || 0)
+          setGameWon(state.gameWon || false)
+          setGameLost(state.gameLost || false)
+          setGuessHistory(state.guessHistory || [])
+        } else {
+          // Saved state is invalid, initialize new game
+          const allWords = [
+            ...data.categories[0].words,
+            ...data.categories[1].words,
+            ...data.categories[2].words,
+            ...data.categories[3].words,
+          ].map((word, index) => ({ id: index, text: word }))
+
+          setWords(shuffleArray(allWords))
+        }
       } else {
         // Initialize new game
         const allWords = [
