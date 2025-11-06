@@ -58,7 +58,9 @@ function Game() {
             ...data.categories[3].words,
           ].map((word, index) => ({ id: index, text: word }))
 
-          setWords(shuffleArray(allWords))
+          // Don't shuffle sample puzzles (IDs 1-3) for easier testing
+          const isSamplePuzzle = parseInt(puzzleId) <= 3
+          setWords(isSamplePuzzle ? allWords : shuffleArray(allWords))
         }
       } else {
         // Initialize new game
@@ -69,7 +71,9 @@ function Game() {
           ...data.categories[3].words,
         ].map((word, index) => ({ id: index, text: word }))
 
-        setWords(shuffleArray(allWords))
+        // Don't shuffle sample puzzles (IDs 1-3) for easier testing
+        const isSamplePuzzle = parseInt(puzzleId) <= 3
+        setWords(isSamplePuzzle ? allWords : shuffleArray(allWords))
       }
     } catch (error) {
       console.error('Error loading puzzle:', error)
@@ -279,6 +283,7 @@ function Game() {
   }
 
   const remainingLives = MAX_MISTAKES - mistakes
+  const isSamplePuzzle = parseInt(puzzleId) <= 3
 
   return (
     <div className="min-h-screen max-w-2xl mx-auto px-4 py-4 md:py-8">
@@ -349,19 +354,21 @@ function Game() {
       {!gameWon && !gameLost && words.length > 0 && (
         <div className="mt-6 flex flex-col gap-3">
           <div className="flex gap-3">
-            <button
-              onClick={handleShuffle}
-              className="flex-1 py-3 px-4 border-2 border-black rounded-full font-semibold
-                       hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-            >
-              <Shuffle size={18} />
-              Shuffle
-            </button>
+            {!isSamplePuzzle && (
+              <button
+                onClick={handleShuffle}
+                className="flex-1 py-3 px-4 border-2 border-black rounded-full font-semibold
+                         hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+              >
+                <Shuffle size={18} />
+                Shuffle
+              </button>
+            )}
             <button
               onClick={handleDeselectAll}
               disabled={selectedWords.length === 0}
-              className="flex-1 py-3 px-4 border-2 border-black rounded-full font-semibold
-                       hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className={`${isSamplePuzzle ? 'w-full' : 'flex-1'} py-3 px-4 border-2 border-black rounded-full font-semibold
+                       hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               Deselect All
             </button>
