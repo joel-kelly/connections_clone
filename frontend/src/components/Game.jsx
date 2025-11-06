@@ -42,8 +42,8 @@ function Game() {
       const savedState = localStorage.getItem(`game_${puzzleId}`)
       if (savedState) {
         const state = JSON.parse(savedState)
-        // Only use saved state if it has words
-        if (state.words && state.words.length > 0) {
+        // Load saved state if it has progress (words remaining or game completed)
+        if (state.words !== undefined && (state.words.length > 0 || state.gameWon || state.gameLost)) {
           setWords(state.words)
           setFoundCategories(state.foundCategories || [])
           setMistakes(state.mistakes || 0)
