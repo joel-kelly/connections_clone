@@ -207,6 +207,9 @@ function Game() {
 
     if (newMistakes >= MAX_MISTAKES) {
       setGameLost(true)
+      // Reveal all remaining categories when game is lost
+      setFoundCategories(puzzle.categories)
+      setWords([])
     }
   }
 
