@@ -15,10 +15,17 @@ function PuzzleList() {
   const fetchPuzzles = async () => {
     try {
       const response = await fetch('/api/puzzles')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const data = await response.json()
-      setPuzzles(data)
+      // Sort puzzles by ID to maintain consistent order
+      const sortedPuzzles = data.sort((a, b) => a.id - b.id)
+      setPuzzles(sortedPuzzles)
     } catch (error) {
       console.error('Error fetching puzzles:', error)
+      // Set empty array on error so UI still works
+      setPuzzles([])
     } finally {
       setLoading(false)
     }

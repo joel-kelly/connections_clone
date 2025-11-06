@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Shuffle, Share2 } from 'lucide-react'
 import WordGrid from './WordGrid'
 import CategoryDisplay from './CategoryDisplay'
-import GameOverModal from './GameOverModal'
 
 function Game() {
   const { puzzleId } = useParams()
@@ -263,12 +262,6 @@ function Game() {
     setGuessHistory([])
   }
 
-  const handleViewSolution = () => {
-    // Show all categories
-    setFoundCategories(puzzle.categories)
-    setWords([])
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -384,9 +377,9 @@ function Game() {
         </div>
       )}
 
-      {/* Share Button (when won) */}
-      {gameWon && (
-        <div className="mt-6">
+      {/* Game Complete Buttons */}
+      {(gameWon || gameLost) && (
+        <div className="mt-6 flex flex-col gap-3">
           <button
             onClick={handleShare}
             className="w-full py-3 px-4 bg-green-600 text-white rounded-full font-semibold
@@ -395,19 +388,22 @@ function Game() {
             <Share2 size={18} />
             Share Results
           </button>
+          <button
+            onClick={handlePlayAgain}
+            className="w-full py-3 px-4 bg-black text-white rounded-full font-semibold
+                     hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+          >
+            Play Again
+          </button>
+          <button
+            onClick={() => navigate('/puzzles')}
+            className="w-full py-3 px-4 border-2 border-gray-300 rounded-full font-semibold
+                     hover:bg-gray-50 transition-colors"
+          >
+            Back to Puzzles
+          </button>
         </div>
       )}
-
-      {/* Game Over Modal */}
-      <GameOverModal
-        isOpen={gameWon || gameLost}
-        won={gameWon}
-        puzzle={puzzle}
-        onPlayAgain={handlePlayAgain}
-        onViewSolution={handleViewSolution}
-        onShare={gameWon ? handleShare : null}
-        onClose={() => navigate('/puzzles')}
-      />
     </div>
   )
 }
