@@ -4,7 +4,7 @@ function WordGrid({ words, selectedWords, onWordClick, disabled }) {
   const isSelected = (word) => selectedWords.find(w => w.id === word.id)
 
   return (
-    <div className="grid grid-cols-4 gap-2 md:gap-3">
+    <div className="grid grid-cols-4 gap-1.5 md:gap-3">
       {words.map((word, index) => (
         <motion.button
           key={word.id}
@@ -15,9 +15,9 @@ function WordGrid({ words, selectedWords, onWordClick, disabled }) {
           onClick={() => onWordClick(word)}
           disabled={disabled}
           className={`
-            aspect-square rounded-lg font-semibold text-sm md:text-base
+            aspect-square rounded-lg font-semibold text-xs md:text-base
             transition-all duration-200 flex items-center justify-center
-            p-2 text-center leading-tight
+            p-1.5 md:p-2 text-center leading-tight
             ${
               isSelected(word)
                 ? 'bg-gray-700 text-white scale-95'

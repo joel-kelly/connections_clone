@@ -14,9 +14,9 @@ function CategoryDisplay({ category }) {
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`${colorClass} rounded-lg p-4 text-center`}
+      className={`${colorClass} rounded-lg p-2.5 md:p-4 text-center`}
     >
-      <div className="font-bold text-sm md:text-base mb-1 uppercase tracking-wide">
+      <div className="font-bold text-xs md:text-base mb-0.5 md:mb-1 uppercase tracking-wide">
         {category.name}
       </div>
       <div className="text-xs md:text-sm">

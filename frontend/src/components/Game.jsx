@@ -276,16 +276,33 @@ function Game() {
     }
 
     try {
-      if (navigator.share) {
+      // Check if Web Share API is available
+      if (navigator.share && navigator.canShare && navigator.canShare({ text: shareText })) {
+        await navigator.share({
+          text: shareText,
+        })
+      } else if (navigator.share) {
+        // Try without canShare check (for older iOS)
         await navigator.share({
           text: shareText,
         })
       } else {
+        // Fallback to clipboard
         await navigator.clipboard.writeText(shareText)
         showMessage('Copied to clipboard!')
       }
     } catch (error) {
-      console.error('Error sharing:', error)
+      // If share was cancelled or failed, try clipboard as fallback
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error)
+        try {
+          await navigator.clipboard.writeText(shareText)
+          showMessage('Copied to clipboard!')
+        } catch (clipboardError) {
+          console.error('Clipboard error:', clipboardError)
+          showMessage('Unable to share or copy')
+        }
+      }
     }
   }
 
@@ -323,20 +340,20 @@ function Game() {
   const isSamplePuzzle = parseInt(puzzleId) <= 3
 
   return (
-    <div className="min-h-screen max-w-2xl mx-auto px-4 py-4 md:py-8">
+    <div className="min-h-screen max-w-2xl mx-auto px-3 py-2 md:px-4 md:py-8">
       {/* Confetti and Achievement Toast */}
       {showConfetti && <Confetti />}
       <AchievementToast achievement={achievement} isVisible={showConfetti} />
 
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-3 md:mb-6 flex items-center justify-between">
         <button
           onClick={() => navigate('/puzzles')}
           className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">{puzzle.title}</h1>
+        <h1 className="text-xl md:text-2xl font-bold">{puzzle.title}</h1>
         <div className="w-8"></div>
       </div>
 
@@ -355,7 +372,7 @@ function Game() {
       </AnimatePresence>
 
       {/* Found Categories */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-1.5 md:space-y-2 mb-2 md:mb-4">
         {foundCategories.map((category, index) => (
           <CategoryDisplay key={index} category={category} />
         ))}
@@ -377,7 +394,7 @@ function Game() {
       )}
 
       {/* Mistakes */}
-      <div className="mt-6 flex justify-center gap-2">
+      <div className="mt-3 md:mt-6 flex justify-center gap-2">
         {[...Array(MAX_MISTAKES)].map((_, i) => (
           <div
             key={i}
@@ -387,18 +404,18 @@ function Game() {
           />
         ))}
       </div>
-      <div className="text-center mt-2 text-sm text-gray-500">
+      <div className="text-center mt-1 md:mt-2 text-sm text-gray-500">
         Mistakes remaining: {remainingLives}
       </div>
 
       {/* Controls */}
       {!gameWon && !gameLost && words.length > 0 && (
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-3 md:mt-6 flex flex-col gap-2 md:gap-3">
           <div className="flex gap-3">
             {!isSamplePuzzle && (
               <button
                 onClick={handleShuffle}
-                className="flex-1 py-3 px-4 border-2 border-black rounded-full font-semibold
+                className="flex-1 py-2.5 md:py-3 px-3 md:px-4 border-2 border-black rounded-full font-semibold text-sm md:text-base
                          hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
               >
                 <Shuffle size={18} />
@@ -408,7 +425,7 @@ function Game() {
             <button
               onClick={handleDeselectAll}
               disabled={selectedWords.length === 0}
-              className={`${isSamplePuzzle ? 'w-full' : 'flex-1'} py-3 px-4 border-2 border-black rounded-full font-semibold
+              className={`${isSamplePuzzle ? 'w-full' : 'flex-1'} py-2.5 md:py-3 px-3 md:px-4 border-2 border-black rounded-full font-semibold text-sm md:text-base
                        hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               Deselect All
@@ -417,7 +434,7 @@ function Game() {
           <button
             onClick={handleSubmit}
             disabled={selectedWords.length !== 4}
-            className="w-full py-3 px-4 bg-black text-white rounded-full font-semibold
+            className="w-full py-2.5 md:py-3 px-3 md:px-4 bg-black text-white rounded-full font-semibold text-sm md:text-base
                      hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Submit
@@ -427,10 +444,10 @@ function Game() {
 
       {/* Game Complete Buttons */}
       {(gameWon || gameLost) && (
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-3 md:mt-6 flex flex-col gap-2 md:gap-3">
           <button
             onClick={handleShare}
-            className="w-full py-3 px-4 bg-green-600 text-white rounded-full font-semibold
+            className="w-full py-2.5 md:py-3 px-3 md:px-4 bg-green-600 text-white rounded-full font-semibold text-sm md:text-base
                      hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
           >
             <Share2 size={18} />
@@ -438,14 +455,14 @@ function Game() {
           </button>
           <button
             onClick={handlePlayAgain}
-            className="w-full py-3 px-4 bg-black text-white rounded-full font-semibold
+            className="w-full py-2.5 md:py-3 px-3 md:px-4 bg-black text-white rounded-full font-semibold text-sm md:text-base
                      hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
           >
             Play Again
           </button>
           <button
             onClick={() => navigate('/puzzles')}
-            className="w-full py-3 px-4 border-2 border-gray-300 rounded-full font-semibold
+            className="w-full py-2.5 md:py-3 px-3 md:px-4 border-2 border-gray-300 rounded-full font-semibold text-sm md:text-base
                      hover:bg-gray-50 transition-colors"
           >
             Back to Puzzles
