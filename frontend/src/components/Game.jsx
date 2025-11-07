@@ -275,34 +275,38 @@ function Game() {
       shareText += `\n❌ Lost after ${MAX_MISTAKES} mistakes`
     }
 
-    try {
-      // Check if Web Share API is available
-      if (navigator.share && navigator.canShare && navigator.canShare({ text: shareText })) {
+    // Try native share first (works on iOS)
+    if (navigator.share) {
+      try {
         await navigator.share({
           text: shareText,
         })
-      } else if (navigator.share) {
-        // Try without canShare check (for older iOS)
-        await navigator.share({
-          text: shareText,
-        })
-      } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(shareText)
-        showMessage('Copied to clipboard!')
-      }
-    } catch (error) {
-      // If share was cancelled or failed, try clipboard as fallback
-      if (error.name !== 'AbortError') {
-        console.error('Error sharing:', error)
-        try {
-          await navigator.clipboard.writeText(shareText)
-          showMessage('Copied to clipboard!')
-        } catch (clipboardError) {
-          console.error('Clipboard error:', clipboardError)
-          showMessage('Unable to share or copy')
+        return // Success!
+      } catch (error) {
+        // User cancelled - don't show error
+        if (error.name === 'AbortError') {
+          return
         }
+        console.error('Share error:', error)
+        // Fall through to manual copy
       }
+    }
+
+    // Fallback: Use textarea method (works on all browsers including iOS)
+    try {
+      const textarea = document.createElement('textarea')
+      textarea.value = shareText
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      textarea.setSelectionRange(0, 99999) // For mobile
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      showMessage('Copied to clipboard!')
+    } catch (error) {
+      console.error('Copy error:', error)
+      showMessage('Tap and hold to copy:\n' + shareText)
     }
   }
 
