@@ -3,6 +3,46 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Eye, Send, Lock } from 'lucide-react'
 
+// CategorySection component - MUST be outside main component to prevent focus loss
+const CategorySection = ({ color, label, bgColor, formData, updateFormData, updateWord, errors }) => (
+  <div className={`${bgColor} rounded-lg p-4`}>
+    <h3 className="font-bold mb-3 uppercase tracking-wide">{label} (Difficulty)</h3>
+    <div className="space-y-3">
+      <div>
+        <label className="block text-sm font-medium mb-1">Category Name</label>
+        <input
+          type="text"
+          value={formData[`${color}Category`]}
+          onChange={(e) => updateFormData(`${color}Category`, e.target.value)}
+          placeholder={`e.g., "Types of Fish"`}
+          className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none bg-white"
+        />
+        {errors[`${color}Category`] && (
+          <p className="text-red-600 text-sm mt-1">{errors[`${color}Category`]}</p>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">4 Words</label>
+        <div className="grid grid-cols-2 gap-2">
+          {[0, 1, 2, 3].map(i => (
+            <input
+              key={i}
+              type="text"
+              value={formData[`${color}Words`][i]}
+              onChange={(e) => updateWord(color, i, e.target.value)}
+              placeholder={`Word ${i + 1}`}
+              className="px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none bg-white uppercase"
+            />
+          ))}
+        </div>
+        {errors[`${color}Words`] && (
+          <p className="text-red-600 text-sm mt-1">{errors[`${color}Words`]}</p>
+        )}
+      </div>
+    </div>
+  </div>
+)
+
 function SubmitPuzzle() {
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
@@ -235,45 +275,6 @@ function SubmitPuzzle() {
     )
   }
 
-  const CategorySection = ({ color, label, bgColor }) => (
-    <div className={`${bgColor} rounded-lg p-4`}>
-      <h3 className="font-bold mb-3 uppercase tracking-wide">{label} (Difficulty)</h3>
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium mb-1">Category Name</label>
-          <input
-            type="text"
-            value={formData[`${color}Category`]}
-            onChange={(e) => updateFormData(`${color}Category`, e.target.value)}
-            placeholder={`e.g., "Types of Fish"`}
-            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none bg-white"
-          />
-          {errors[`${color}Category`] && (
-            <p className="text-red-600 text-sm mt-1">{errors[`${color}Category`]}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">4 Words</label>
-          <div className="grid grid-cols-2 gap-2">
-            {[0, 1, 2, 3].map(i => (
-              <input
-                key={i}
-                type="text"
-                value={formData[`${color}Words`][i]}
-                onChange={(e) => updateWord(color, i, e.target.value)}
-                placeholder={`Word ${i + 1}`}
-                className="px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none bg-white uppercase"
-              />
-            ))}
-          </div>
-          {errors[`${color}Words`] && (
-            <p className="text-red-600 text-sm mt-1">{errors[`${color}Words`]}</p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-
   const previewWords = getPreviewWords()
   const showPreview = previewWords.length === 16
 
@@ -325,10 +326,10 @@ function SubmitPuzzle() {
 
           {/* Categories */}
           <div className="space-y-4">
-            <CategorySection color="yellow" label="Yellow - Easiest" bgColor="bg-connections-yellow" />
-            <CategorySection color="green" label="Green - Medium" bgColor="bg-connections-green" />
-            <CategorySection color="blue" label="Blue - Hard" bgColor="bg-connections-blue" />
-            <CategorySection color="purple" label="Purple - Hardest" bgColor="bg-connections-purple" />
+            <CategorySection color="yellow" label="Yellow - Easiest" bgColor="bg-connections-yellow" formData={formData} updateFormData={updateFormData} updateWord={updateWord} errors={errors} />
+            <CategorySection color="green" label="Green - Medium" bgColor="bg-connections-green" formData={formData} updateFormData={updateFormData} updateWord={updateWord} errors={errors} />
+            <CategorySection color="blue" label="Blue - Hard" bgColor="bg-connections-blue" formData={formData} updateFormData={updateFormData} updateWord={updateWord} errors={errors} />
+            <CategorySection color="purple" label="Purple - Hardest" bgColor="bg-connections-purple" formData={formData} updateFormData={updateFormData} updateWord={updateWord} errors={errors} />
           </div>
 
           {/* Errors */}

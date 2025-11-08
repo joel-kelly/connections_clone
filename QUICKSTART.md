@@ -44,7 +44,7 @@ See the [Deployment Guide](docs/DEPLOYMENT.md) for:
 
 ### Want family to submit puzzles?
 
-See the [Puzzle Submission Guide](docs/PUZZLE_SUBMISSION.md) for setting up a Google Form.
+The game includes a built-in submission page at `/submit`. Just share the password with your family!
 
 ---
 

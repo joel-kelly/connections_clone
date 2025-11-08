@@ -72,7 +72,6 @@ connections-clone/
 - **[Setup Guide](docs/SETUP_GUIDE.md)** - Complete setup instructions
 - **[Google Sheets Setup](docs/GOOGLE_SHEETS_SETUP.md)** - Connect to Google Sheets
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Deploy to your home server
-- **[Puzzle Submission](docs/PUZZLE_SUBMISSION.md)** - How to add new puzzles
 
 ## Game Rules
 
