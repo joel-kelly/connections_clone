@@ -18,7 +18,7 @@ export async function getSheetsClient() {
     if (fs.existsSync(credPath)) {
       const auth = new google.auth.GoogleAuth({
         keyFile: credPath,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'], // Full access for read+write
       })
 
       sheetsClient = google.sheets({ version: 'v4', auth })
@@ -50,7 +50,7 @@ export async function fetchPuzzles() {
 
     const response = await client.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Puzzles!A2:M', // Skip header row
+      range: 'Puzzles!A2:M', // Include Status column (M)
     })
 
     const rows = response.data.values
@@ -58,37 +58,95 @@ export async function fetchPuzzles() {
       return getSamplePuzzles()
     }
 
-    return rows.map((row, index) => ({
-      id: parseInt(row[0]) || index + 1,
-      title: row[1] || `Puzzle ${index + 1}`,
-      author: row[2] || '',
-      dateCreated: row[3] || '',
-      categories: [
-        {
-          difficulty: 0,
-          name: row[4] || 'Yellow Category',
-          words: (row[5] || '').split(',').map(w => w.trim()).filter(Boolean),
-        },
-        {
-          difficulty: 1,
-          name: row[6] || 'Green Category',
-          words: (row[7] || '').split(',').map(w => w.trim()).filter(Boolean),
-        },
-        {
-          difficulty: 2,
-          name: row[8] || 'Blue Category',
-          words: (row[9] || '').split(',').map(w => w.trim()).filter(Boolean),
-        },
-        {
-          difficulty: 3,
-          name: row[10] || 'Purple Category',
-          words: (row[11] || '').split(',').map(w => w.trim()).filter(Boolean),
-        },
-      ],
-    }))
+    return rows
+      .filter(row => {
+        // Filter out hidden puzzles - column M (index 12) is status
+        const status = (row[12] || 'published').toLowerCase().trim()
+        return status === 'published'
+      })
+      .map((row, index) => ({
+        id: parseInt(row[0]) || index + 1,
+        title: row[1] || `Puzzle ${index + 1}`,
+        author: row[2] || '',
+        dateCreated: row[3] || '',
+        categories: [
+          {
+            difficulty: 0,
+            name: row[4] || 'Yellow Category',
+            words: (row[5] || '').split(',').map(w => w.trim()).filter(Boolean),
+          },
+          {
+            difficulty: 1,
+            name: row[6] || 'Green Category',
+            words: (row[7] || '').split(',').map(w => w.trim()).filter(Boolean),
+          },
+          {
+            difficulty: 2,
+            name: row[8] || 'Blue Category',
+            words: (row[9] || '').split(',').map(w => w.trim()).filter(Boolean),
+          },
+          {
+            difficulty: 3,
+            name: row[10] || 'Purple Category',
+            words: (row[11] || '').split(',').map(w => w.trim()).filter(Boolean),
+          },
+        ],
+      }))
   } catch (error) {
     console.error('Error fetching from Google Sheets:', error)
     return getSamplePuzzles()
+  }
+}
+
+export async function submitPuzzle(puzzleData) {
+  const client = await getSheetsClient()
+
+  if (!client) {
+    throw new Error('Google Sheets not configured')
+  }
+
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID
+  if (!spreadsheetId) {
+    throw new Error('GOOGLE_SHEET_ID not set')
+  }
+
+  try {
+    // Get existing puzzles to determine next ID
+    const existingPuzzles = await fetchPuzzles()
+    const maxId = existingPuzzles.reduce((max, p) => Math.max(max, p.id), 0)
+    const nextId = maxId + 1
+
+    // Format data as row for Google Sheets
+    const row = [
+      nextId, // puzzle_id
+      puzzleData.title,
+      puzzleData.author,
+      new Date().toISOString().split('T')[0], // date_created
+      puzzleData.yellowCategory,
+      puzzleData.yellowWords.join(','),
+      puzzleData.greenCategory,
+      puzzleData.greenWords.join(','),
+      puzzleData.blueCategory,
+      puzzleData.blueWords.join(','),
+      puzzleData.purpleCategory,
+      puzzleData.purpleWords.join(','),
+      'published', // status - default to published
+    ]
+
+    // Append to sheet
+    await client.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Puzzles!A:M',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [row],
+      },
+    })
+
+    return { id: nextId, success: true }
+  } catch (error) {
+    console.error('Error submitting puzzle:', error)
+    throw error
   }
 }
 

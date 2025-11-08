@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import WelcomeScreen from './components/WelcomeScreen'
 import PuzzleList from './components/PuzzleList'
 import Game from './components/Game'
+import SubmitPuzzle from './components/SubmitPuzzle'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
           <Route path="/" element={<WelcomeScreen />} />
           <Route path="/puzzles" element={<PuzzleList />} />
           <Route path="/play/:puzzleId" element={<Game />} />
+          <Route path="/submit" element={<SubmitPuzzle />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
