@@ -2,9 +2,27 @@
 
 Set up a Google Form so your family can easily submit new puzzles.
 
-## Overview
+---
 
-Since you chose Google Forms, here's how to set it up so family members can submit puzzles that you can then add to your Google Sheet.
+## ⚡ Quick Start: Auto-Publish (Recommended)
+
+**Want puzzles to appear instantly without manual review?**
+
+👉 **Follow the [Google Form Auto-Publish Guide](GOOGLE_FORM_AUTO_PUBLISH.md)**
+
+This is the recommended approach:
+- ✅ Puzzles appear in game immediately
+- ✅ No manual review needed
+- ✅ Simple setup (15 minutes)
+- ✅ Family can create puzzles anytime
+
+---
+
+## Alternative: Manual Review Workflow
+
+The guide below is for manual review (you copy from Submissions → Puzzles sheet).
+
+**Only use this if you want to review every puzzle before it goes live.**
 
 ---
 
