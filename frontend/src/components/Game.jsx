@@ -63,8 +63,8 @@ function Game() {
             ...data.categories[3].words,
           ].map((word, index) => ({ id: index, text: word }))
 
-          // Don't shuffle sample puzzles (IDs 1-3) for easier testing
-          const isSamplePuzzle = parseInt(puzzleId) <= 3
+          // Don't shuffle sample puzzles (author "System") for easier testing
+          const isSamplePuzzle = data.author === 'System'
           setWords(isSamplePuzzle ? allWords : shuffleArray(allWords))
         }
       } else {
@@ -76,8 +76,8 @@ function Game() {
           ...data.categories[3].words,
         ].map((word, index) => ({ id: index, text: word }))
 
-        // Don't shuffle sample puzzles (IDs 1-3) for easier testing
-        const isSamplePuzzle = parseInt(puzzleId) <= 3
+        // Don't shuffle sample puzzles (author "System") for easier testing
+        const isSamplePuzzle = data.author === 'System'
         setWords(isSamplePuzzle ? allWords : shuffleArray(allWords))
       }
     } catch (error) {
@@ -341,7 +341,8 @@ function Game() {
   }
 
   const remainingLives = MAX_MISTAKES - mistakes
-  const isSamplePuzzle = parseInt(puzzleId) <= 3
+  // Only sample puzzles (with author "System") should not be shuffled
+  const isSamplePuzzle = puzzle.author === 'System'
 
   return (
     <div className="min-h-screen max-w-2xl mx-auto px-3 py-2 md:px-4 md:py-8">
