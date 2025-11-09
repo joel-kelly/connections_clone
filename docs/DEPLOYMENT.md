@@ -32,9 +32,18 @@ This will:
 Before deploying, set up your environment:
 
 ```bash
-# Create backend/.env with your Google Sheets ID
-echo "GOOGLE_SHEET_ID=your_sheet_id" > backend/.env
+# Create backend/.env with your configuration
+cat > backend/.env << EOF
+PORT=3001
+GOOGLE_SHEET_ID=your_sheet_id_here
+SUBMIT_PASSWORD=your_password_here
+EOF
 ```
+
+**Environment Variables:**
+- `PORT` - Backend server port (default: 3001)
+- `GOOGLE_SHEET_ID` - Your Google Sheets puzzle database ID
+- `SUBMIT_PASSWORD` - Password for puzzle submission page (protect this!)
 
 Don't forget to add `backend/credentials.json` (see Google Sheets Setup guide).
 
@@ -98,9 +107,16 @@ npm install
 cp /path/to/credentials.json .
 
 # Set up environment
-echo "GOOGLE_SHEET_ID=your_sheet_id" > .env
-echo "PORT=3001" >> .env
+cat > .env << EOF
+PORT=3001
+GOOGLE_SHEET_ID=your_sheet_id_here
+SUBMIT_PASSWORD=your_password_here
+EOF
 ```
+
+Make sure to replace:
+- `your_sheet_id_here` with your actual Google Sheets ID
+- `your_password_here` with a secure password for puzzle submissions
 
 ### 3. Start Backend with PM2
 
@@ -186,6 +202,8 @@ http://YOUR_SERVER_IP
 
 Have them bookmark it on their phones!
 
+**Puzzle Submissions:** Share the `SUBMIT_PASSWORD` with family members so they can submit their own puzzles at `/submit`.
+
 ### Option B: Custom Domain (Recommended)
 
 1. Buy a domain (e.g., connections.family.com)
@@ -261,8 +279,8 @@ docker-compose logs -f
 ### What to Backup
 
 1. Your Google Sheet (auto-saved by Google)
-2. `backend/credentials.json`
-3. `backend/.env`
+2. `backend/credentials.json` - Google API credentials
+3. `backend/.env` - Contains your Sheet ID and submission password
 
 ### Backup Commands
 
