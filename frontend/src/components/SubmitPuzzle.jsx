@@ -48,6 +48,8 @@ function SubmitPuzzle() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [checkingPassword, setCheckingPassword] = useState(false)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -67,11 +69,28 @@ function SubmitPuzzle() {
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault()
-    // Just mark as authenticated - real validation happens on backend
-    if (password.trim()) {
-      setIsAuthenticated(true)
+    setPasswordError('')
+    setCheckingPassword(true)
+
+    try {
+      const response = await fetch('/api/validate-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+
+      if (response.ok) {
+        setIsAuthenticated(true)
+      } else {
+        setPasswordError('Invalid password. Please try again.')
+      }
+    } catch (error) {
+      console.error('Password validation error:', error)
+      setPasswordError('Cannot connect to server. Make sure the backend is running.')
+    } finally {
+      setCheckingPassword(false)
     }
   }
 
@@ -232,7 +251,11 @@ function SubmitPuzzle() {
                 placeholder="Password"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none"
                 required
+                disabled={checkingPassword}
               />
+              {passwordError && (
+                <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+              )}
             </div>
             <div className="mb-4">
               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
@@ -240,15 +263,17 @@ function SubmitPuzzle() {
                   type="checkbox"
                   checked={showPassword}
                   onChange={(e) => setShowPassword(e.target.checked)}
+                  disabled={checkingPassword}
                 />
                 Show password
               </label>
             </div>
             <button
               type="submit"
-              className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+              disabled={checkingPassword}
+              className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue
+              {checkingPassword ? 'Checking...' : 'Continue'}
             </button>
           </form>
 

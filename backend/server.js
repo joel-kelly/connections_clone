@@ -45,6 +45,17 @@ app.get('/api/puzzles/:id', async (req, res) => {
   }
 })
 
+// Validate password
+app.post('/api/validate-password', (req, res) => {
+  const { password } = req.body
+
+  if (password === SUBMIT_PASSWORD) {
+    res.json({ valid: true })
+  } else {
+    res.status(401).json({ valid: false, error: 'Invalid password' })
+  }
+})
+
 // Submit new puzzle
 app.post('/api/puzzles', async (req, res) => {
   try {
