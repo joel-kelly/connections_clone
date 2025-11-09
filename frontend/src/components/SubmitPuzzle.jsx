@@ -344,19 +344,6 @@ function SubmitPuzzle() {
             <CategorySection color="purple" label="Purple - Hardest" bgColor="bg-connections-purple" formData={formData} updateFormData={updateFormData} updateWord={updateWord} errors={errors} />
           </div>
 
-          {/* Errors */}
-          {errors.duplicates && (
-            <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-lg">
-              {errors.duplicates}
-            </div>
-          )}
-
-          {submitError && (
-            <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-lg">
-              {submitError}
-            </div>
-          )}
-
           {/* Preview */}
           {showPreview && (
             <div className="bg-white rounded-lg p-6 shadow-sm">
@@ -375,6 +362,19 @@ function SubmitPuzzle() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Errors */}
+          {errors.duplicates && (
+            <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-lg">
+              {errors.duplicates}
+            </div>
+          )}
+
+          {submitError && (
+            <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-lg">
+              {submitError}
             </div>
           )}
 
