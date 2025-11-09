@@ -167,18 +167,30 @@ function SubmitPuzzle() {
         }),
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit puzzle')
+        let errorMessage = 'Failed to submit puzzle'
+        try {
+          const data = await response.json()
+          errorMessage = data.error || errorMessage
+        } catch (e) {
+          // If JSON parsing fails, use status text
+          errorMessage = `Server error: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMessage)
       }
+
+      const data = await response.json()
 
       setSubmitSuccess(true)
       // Redirect after 3 seconds
       setTimeout(() => navigate('/puzzles'), 3000)
     } catch (error) {
       console.error('Submit error:', error)
-      setSubmitError(error.message)
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        setSubmitError('Cannot connect to server. Make sure the backend is running on port 3001.')
+      } else {
+        setSubmitError(error.message)
+      }
     } finally {
       setSubmitting(false)
     }

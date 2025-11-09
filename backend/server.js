@@ -76,16 +76,43 @@ app.post('/api/puzzles', async (req, res) => {
     }
 
     // Check for duplicate words
+    const wordsByCategory = {
+      yellow: puzzleData.yellowWords.map(w => w.toUpperCase().trim()),
+      green: puzzleData.greenWords.map(w => w.toUpperCase().trim()),
+      blue: puzzleData.blueWords.map(w => w.toUpperCase().trim()),
+      purple: puzzleData.purpleWords.map(w => w.toUpperCase().trim()),
+    }
+
     const allWords = [
-      ...puzzleData.yellowWords,
-      ...puzzleData.greenWords,
-      ...puzzleData.blueWords,
-      ...puzzleData.purpleWords,
-    ].map(w => w.toUpperCase().trim())
+      ...wordsByCategory.yellow,
+      ...wordsByCategory.green,
+      ...wordsByCategory.blue,
+      ...wordsByCategory.purple,
+    ]
 
     const uniqueWords = new Set(allWords)
     if (uniqueWords.size !== 16) {
-      return res.status(400).json({ error: 'Duplicate words found. Each word must be unique.' })
+      // Find duplicates and which categories they're in
+      const wordCounts = {}
+      const wordLocations = {}
+
+      for (const [category, words] of Object.entries(wordsByCategory)) {
+        words.forEach(word => {
+          wordCounts[word] = (wordCounts[word] || 0) + 1
+          if (!wordLocations[word]) {
+            wordLocations[word] = []
+          }
+          wordLocations[word].push(category)
+        })
+      }
+
+      const duplicates = Object.entries(wordCounts)
+        .filter(([word, count]) => count > 1)
+        .map(([word, count]) => `"${word}" (in ${wordLocations[word].join(', ')})`)
+
+      return res.status(400).json({
+        error: `Duplicate words found: ${duplicates.join('; ')}. Each word must be unique.`
+      })
     }
 
     // Submit to Google Sheets
