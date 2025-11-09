@@ -137,18 +137,41 @@ function SubmitPuzzle() {
     })
 
     // Check for duplicates
+    const wordsByCategory = {
+      yellow: formData.yellowWords.map(w => w.trim().toUpperCase()).filter(Boolean),
+      green: formData.greenWords.map(w => w.trim().toUpperCase()).filter(Boolean),
+      blue: formData.blueWords.map(w => w.trim().toUpperCase()).filter(Boolean),
+      purple: formData.purpleWords.map(w => w.trim().toUpperCase()).filter(Boolean),
+    }
+
     const allWords = [
-      ...formData.yellowWords,
-      ...formData.greenWords,
-      ...formData.blueWords,
-      ...formData.purpleWords,
+      ...wordsByCategory.yellow,
+      ...wordsByCategory.green,
+      ...wordsByCategory.blue,
+      ...wordsByCategory.purple,
     ]
-      .map(w => w.trim().toUpperCase())
-      .filter(Boolean)
 
     const uniqueWords = new Set(allWords)
-    if (allWords.length > 0 && uniqueWords.size !== allWords.length) {
-      newErrors.duplicates = 'Each word must be unique across all categories'
+    if (allWords.length === 16 && uniqueWords.size !== 16) {
+      // Find duplicates and which categories they're in
+      const wordCounts = {}
+      const wordLocations = {}
+
+      for (const [category, words] of Object.entries(wordsByCategory)) {
+        words.forEach(word => {
+          wordCounts[word] = (wordCounts[word] || 0) + 1
+          if (!wordLocations[word]) {
+            wordLocations[word] = []
+          }
+          wordLocations[word].push(category)
+        })
+      }
+
+      const duplicates = Object.entries(wordCounts)
+        .filter(([word, count]) => count > 1)
+        .map(([word, count]) => `"${word}" (in ${wordLocations[word].join(', ')})`)
+
+      newErrors.duplicates = `Duplicate words found: ${duplicates.join('; ')}. Each word must be unique.`
     }
 
     setErrors(newErrors)
