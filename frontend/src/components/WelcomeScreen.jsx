@@ -14,7 +14,7 @@ function WelcomeScreen() {
         className="text-center"
       >
         <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-          Connections
+          Kelly Family<br></br>Connections
         </h1>
         <p className="text-gray-600 text-lg md:text-xl mb-8 max-w-md mx-auto">
           Group words that share a common thread.

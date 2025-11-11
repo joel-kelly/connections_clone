@@ -6,7 +6,7 @@ import { ArrowLeft, Eye, Send, Lock } from 'lucide-react'
 // CategorySection component - MUST be outside main component to prevent focus loss
 const CategorySection = ({ color, label, bgColor, formData, updateFormData, updateWord, errors }) => (
   <div className={`${bgColor} rounded-lg p-4`}>
-    <h3 className="font-bold mb-3 uppercase tracking-wide">{label} (Difficulty)</h3>
+    <h3 className="font-bold mb-3 uppercase tracking-wide">{label}</h3>
     <div className="space-y-3">
       <div>
         <label className="block text-sm font-medium mb-1">Category Name</label>
@@ -351,7 +351,7 @@ function SubmitPuzzle() {
             Back
           </button>
           <h1 className="text-4xl font-bold">Submit a Puzzle</h1>
-          <p className="text-gray-600 mt-2">Create your own Connections puzzle for others to enjoy!</p>
+          <p className="text-gray-600 mt-2">Create your own Connections puzzle!</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
