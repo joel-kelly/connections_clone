@@ -7,13 +7,16 @@ services:
       dockerfile: Dockerfile.backend
     container_name: connections-backend
     ports:
-      - "3001:3001"
+      - "3070:3070"
     volumes:
       - ./backend/credentials.json:/app/credentials.json:ro
       - ./backend/.env:/app/.env:ro
     environment:
       - NODE_ENV=production
     restart: unless-stopped
+    networks:
+      - default
+      - proxy-net
 
   frontend:
     build:
@@ -21,7 +24,14 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: connections-frontend
     ports:
-      - "80:80"
+      - "3069:3069"
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - default
+      - proxy-net
+
+networks:
+  proxy-net:
+    external: true
