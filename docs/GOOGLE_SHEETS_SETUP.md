@@ -21,22 +21,25 @@ Your family can create puzzles in a Google Sheet, and the game will fetch them a
 
 Rename the first sheet to "Puzzles" and create these columns in Row 1:
 
-| A | B | C | D | E | F | G | H | I | J | K | L |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| puzzle_id | title | author | date_created | yellow_category | yellow_words | green_category | green_words | blue_category | blue_words | purple_category | purple_words |
+| A | B | C | D | E | F | G | H | I | J | K | L | M |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| puzzle_id | title | author | date_created | yellow_category | yellow_words | green_category | green_words | blue_category | blue_words | purple_category | purple_words | status |
 
 ### 3. Add Sample Puzzle
 
 Add this sample puzzle in Row 2:
 
-| A | B | C | D | E | F | G | H | I | J | K | L |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Fish & Planets | John | 2024-01-15 | FISH | BASS,FLOUNDER,SALMON,TROUT | PLANETS | EARTH,MARS,VENUS,JUPITER | ___ PAPER | TOILET,NEWS,WALL,SAND | STARTS WITH METALS | GOLDEN,LEADERSHIP,IRONIC,BRAZEN |
+| A | B | C | D | E | F | G | H | I | J | K | L | M |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Fish & Planets | John | 2024-01-15 | FISH | BASS,FLOUNDER,SALMON,TROUT | PLANETS | EARTH,MARS,VENUS,JUPITER | ___ PAPER | TOILET,NEWS,WALL,SAND | STARTS WITH METALS | GOLDEN,LEADERSHIP,IRONIC,BRAZEN | published |
 
 **Important**:
 - Words should be comma-separated with no spaces: `WORD1,WORD2,WORD3,WORD4`
 - Use uppercase for consistency
 - Each category needs exactly 4 words
+- **Status column**: Set to "published" to show in game, "hidden" to hide
+  - New puzzles submitted via the web form are automatically "published"
+  - Change status to "hidden" if you want to temporarily hide a puzzle
 
 ### 4. Get Your Sheet ID
 
@@ -92,9 +95,11 @@ Copy the `SHEET_ID_HERE` part - you'll need it later.
 4. Go back to your Google Sheet
 5. Click "Share" (top right)
 6. Paste the service account email
-7. Give it "Viewer" access
+7. Give it **"Editor"** access (required for puzzle submissions)
 8. Uncheck "Notify people"
 9. Click "Share"
+
+**Note**: Editor access is needed so the web form can automatically add submitted puzzles to your sheet.
 
 ## Part 3: Configure Your Backend
 
@@ -114,9 +119,12 @@ Edit `backend/.env`:
 ```env
 PORT=3001
 GOOGLE_SHEET_ID=your_sheet_id_from_part_1
+SUBMIT_PASSWORD=your_password_here
 ```
 
-Replace `your_sheet_id_from_part_1` with the Sheet ID you copied earlier.
+Replace:
+- `your_sheet_id_from_part_1` with the Sheet ID you copied earlier
+- `your_password_here` with a secure password for puzzle submissions
 
 ### 3. Restart Backend
 
@@ -133,13 +141,23 @@ npm run dev
 
 ## Adding New Puzzles
 
-To add a new puzzle to your sheet:
+There are two ways to add puzzles:
+
+### Option 1: Web Submission Form (Recommended)
+
+1. Go to `/submit` in your game
+2. Enter the submission password
+3. Fill out the puzzle form with categories and words
+4. Submit - the puzzle is automatically added to your Google Sheet!
+
+### Option 2: Direct Google Sheets Entry
 
 1. Open your Google Sheet
 2. Add a new row with:
    - Unique puzzle_id (increment from last)
    - Title and author
    - Four categories with exactly 4 words each
+   - Status: "published"
 3. Save
 4. Refresh your game - the new puzzle appears!
 
@@ -158,9 +176,10 @@ To add a new puzzle to your sheet:
 - Ensure service account email has access to the sheet
 - Check backend logs for specific errors
 
-### "Permission denied"
+### "Permission denied" or "Cannot submit puzzles"
 - Make sure you shared the sheet with the service account email
-- Give the service account at least "Viewer" access
+- Give the service account **"Editor"** access (not just Viewer)
+- Verify the service account email is correct in the share settings
 
 ### "Sample puzzles still showing"
 - Backend falls back to sample puzzles if Sheets connection fails

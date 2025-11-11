@@ -33,7 +33,13 @@ Edit `backend/.env`:
 ```env
 PORT=3001
 GOOGLE_SHEET_ID=your_google_sheet_id_here
+SUBMIT_PASSWORD=your_password_here
 ```
+
+**Environment Variables:**
+- `PORT` - Backend server port (default: 3001)
+- `GOOGLE_SHEET_ID` - Your Google Sheets puzzle database ID (optional for dev)
+- `SUBMIT_PASSWORD` - Password for puzzle submission page (defaults to "kellyconnect")
 
 **Note**: The app works with sample puzzles without Google Sheets. You can skip the Google Sheets setup initially and add it later.
 
