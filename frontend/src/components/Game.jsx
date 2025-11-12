@@ -32,8 +32,11 @@ function Game() {
   }, [puzzleId])
 
   useEffect(() => {
-    saveGameState()
-  }, [words, selectedWords, foundCategories, mistakes, gameWon, gameLost, guessHistory, achievement])
+    // Only save if puzzle has been loaded (not on initial render)
+    if (puzzle) {
+      saveGameState()
+    }
+  }, [words, selectedWords, foundCategories, mistakes, gameWon, gameLost, guessHistory, achievement, puzzle])
 
   const loadPuzzle = async () => {
     try {
@@ -45,9 +48,9 @@ function Game() {
       const savedState = localStorage.getItem(`game_${puzzleId}`)
       if (savedState) {
         const state = JSON.parse(savedState)
-        // Load saved state if it has progress (words remaining or game completed)
-        if (state.words !== undefined && (state.words.length > 0 || state.gameWon || state.gameLost)) {
-          setWords(state.words)
+        // Load saved state if game is completed or has progress
+        if (state.gameWon || state.gameLost || (state.words !== undefined && state.words.length > 0)) {
+          setWords(state.words || [])
           setFoundCategories(state.foundCategories || [])
           setMistakes(state.mistakes || 0)
           setGameWon(state.gameWon || false)
