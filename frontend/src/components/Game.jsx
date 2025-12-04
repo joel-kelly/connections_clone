@@ -265,7 +265,9 @@ function Game() {
   }
 
   const handleShare = async () => {
-    let shareText = `Connections #${puzzleId}\n`
+    let shareText = `Kelly Connections #${puzzleId}\n`
+
+    shareText += puzzle.title +'\n'
 
     // Add each guess as a row (both correct and wrong)
     guessHistory.forEach(guess => {
