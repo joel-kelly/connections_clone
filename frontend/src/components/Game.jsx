@@ -275,9 +275,18 @@ function Game() {
       shareText += guess.colors.join('') + '\n'
     })
 
-    // Add status
+    // Add status and mistakes
     if (gameLost) {
       shareText += `\n❌ Lost after ${MAX_MISTAKES} mistakes`
+    } else if (gameWon) {
+      // Show mistakes count when winning
+      if (mistakes === 0) {
+        shareText += `\n✨ Perfect! No mistakes`
+      } else if (mistakes === 1) {
+        shareText += `\n✅ Won with 1 mistake`
+      } else {
+        shareText += `\n✅ Won with ${mistakes} mistakes`
+      }
     }
 
     // Try native share first (works on iOS)
@@ -404,11 +413,11 @@ function Game() {
       )}
 
       {/* Mistakes */}
-      <div className="mt-3 md:mt-6 flex justify-center gap-2">
+      <div className="mt-3 md:mt-6 flex justify-center gap-2 md:gap-3">
         {[...Array(MAX_MISTAKES)].map((_, i) => (
           <div
             key={i}
-            className={`w-3 h-3 rounded-full ${
+            className={`w-4 h-4 md:w-5 md:h-5 rounded-full ${
               i < mistakes ? 'bg-gray-400' : 'bg-gray-200'
             }`}
           />
