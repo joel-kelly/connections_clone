@@ -41,7 +41,30 @@ Add this sample puzzle in Row 2:
   - New puzzles submitted via the web form are automatically "published"
   - Change status to "hidden" if you want to temporarily hide a puzzle
 
-### 4. Get Your Sheet ID
+### 4. Create PlayStats Sheet (Optional - for Statistics)
+
+If you want to track game statistics, create a second sheet:
+
+1. Click the "+" button at the bottom left to add a new sheet
+2. Name it "PlayStats"
+3. Create these columns in Row 1:
+
+| A | B | C | D | E | F | G |
+|---|---|---|---|---|---|---|
+| timestamp | puzzle_id | puzzle_title | result | mistakes | achievement | failed_categories |
+
+This sheet will automatically collect data when players complete puzzles:
+- **timestamp**: When the game was completed
+- **puzzle_id**: Which puzzle was played
+- **puzzle_title**: The puzzle name
+- **result**: "Won" or "Lost"
+- **mistakes**: Number of wrong guesses (0-4)
+- **achievement**: Any achievement earned (mindreader, perfect, phew, etc.)
+- **failed_categories**: Categories that were guessed incorrectly
+
+**Note**: This sheet is optional. If it doesn't exist, the stats logging will simply be skipped. The game will work fine without it.
+
+### 5. Get Your Sheet ID
 
 Your Google Sheet URL looks like:
 ```
@@ -168,6 +191,26 @@ There are two ways to add puzzles:
 - **Testing**: Test puzzles before sharing with family
 - **Collaboration**: Multiple family members can add to the same sheet
 
+## Viewing Statistics
+
+If you set up the PlayStats sheet:
+
+1. Click the "Stats" button on the puzzle list page
+2. View overall statistics:
+   - Total plays across all puzzles
+   - Win rate percentage
+   - Average mistakes per game
+   - Achievements earned
+3. See per-puzzle breakdowns:
+   - How many times each puzzle was played
+   - Win/loss ratio for each puzzle
+   - Average mistakes per puzzle
+4. Discover which categories are hardest:
+   - See which puzzle categories cause the most mistakes
+   - Identify patterns in what's tripping people up
+
+The stats page automatically aggregates data from the PlayStats sheet in your Google Sheets document.
+
 ## Troubleshooting
 
 ### "Puzzles not loading"
@@ -185,3 +228,10 @@ There are two ways to add puzzles:
 - Backend falls back to sample puzzles if Sheets connection fails
 - Check backend terminal for error messages
 - Verify GOOGLE_SHEET_ID is set in `backend/.env`
+
+### "Stats not showing" or "Stats page is empty"
+- Make sure you created the "PlayStats" sheet in your Google Sheets document
+- Verify the sheet is named exactly "PlayStats" (case-sensitive)
+- Ensure the column headers match exactly (timestamp, puzzle_id, puzzle_title, result, mistakes, achievement, failed_categories)
+- Stats will only show after someone completes a puzzle (wins or loses)
+- The stats logging is optional - if the sheet doesn't exist, games will still work normally

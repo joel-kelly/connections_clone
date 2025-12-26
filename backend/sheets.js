@@ -150,6 +150,96 @@ export async function submitPuzzle(puzzleData) {
   }
 }
 
+export async function logGamePlay(playData) {
+  const client = await getSheetsClient()
+
+  if (!client) {
+    console.warn('Google Sheets not configured. Play stat not logged.')
+    return { success: false, message: 'Sheets not configured' }
+  }
+
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID
+  if (!spreadsheetId) {
+    console.warn('GOOGLE_SHEET_ID not set. Play stat not logged.')
+    return { success: false, message: 'Sheet ID not set' }
+  }
+
+  try {
+    // Format: timestamp, puzzle_id, puzzle_title, won, mistakes, achievement, failed_categories
+    const failedCategories = playData.failedCategories ? playData.failedCategories.join('; ') : ''
+
+    const row = [
+      new Date().toISOString(),
+      playData.puzzleId,
+      playData.puzzleTitle,
+      playData.won ? 'Won' : 'Lost',
+      playData.mistakes,
+      playData.achievement || '',
+      failedCategories,
+    ]
+
+    // Append to PlayStats sheet
+    await client.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'PlayStats!A:G',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [row],
+      },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error logging play stat:', error)
+    return { success: false, message: error.message }
+  }
+}
+
+export async function fetchPlayStats() {
+  const client = await getSheetsClient()
+
+  if (!client) {
+    console.warn('Google Sheets not configured. Returning empty stats.')
+    return []
+  }
+
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID
+  if (!spreadsheetId) {
+    console.warn('GOOGLE_SHEET_ID not set. Returning empty stats.')
+    return []
+  }
+
+  try {
+    const response = await client.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'PlayStats!A2:G', // Skip header row
+    })
+
+    const rows = response.data.values
+    if (!rows || rows.length === 0) {
+      return []
+    }
+
+    return rows.map(row => ({
+      timestamp: row[0] || '',
+      puzzleId: parseInt(row[1]) || 0,
+      puzzleTitle: row[2] || '',
+      won: row[3] === 'Won',
+      mistakes: parseInt(row[4]) || 0,
+      achievement: row[5] || '',
+      failedCategories: row[6] ? row[6].split('; ').filter(Boolean) : [],
+    }))
+  } catch (error) {
+    // If PlayStats sheet doesn't exist yet, return empty array
+    if (error.message.includes('Unable to parse range')) {
+      console.warn('PlayStats sheet does not exist yet. Returning empty stats.')
+      return []
+    }
+    console.error('Error fetching play stats:', error)
+    return []
+  }
+}
+
 function getSamplePuzzles() {
   return [
     {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Circle, Plus } from 'lucide-react'
+import { ArrowLeft, Circle, Plus, BarChart3 } from 'lucide-react'
 
 function PuzzleList() {
   const navigate = useNavigate()
@@ -77,13 +77,22 @@ function PuzzleList() {
 
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-4xl font-bold">Select a Puzzle</h1>
-        <button
-          onClick={() => navigate('/submit')}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
-        >
-          <Plus size={20} />
-          Submit Puzzle
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate('/stats')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <BarChart3 size={20} />
+            Stats
+          </button>
+          <button
+            onClick={() => navigate('/submit')}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Submit Puzzle
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">

@@ -38,6 +38,13 @@ function Game() {
     }
   }, [words, selectedWords, foundCategories, mistakes, gameWon, gameLost, guessHistory, achievement, puzzle])
 
+  useEffect(() => {
+    // Log game completion to backend
+    if ((gameWon || gameLost) && puzzle && guessHistory.length > 0) {
+      logGameCompletion()
+    }
+  }, [gameWon, gameLost])
+
   const loadPuzzle = async () => {
     try {
       const response = await fetch(`/api/puzzles/${puzzleId}`)
@@ -101,6 +108,49 @@ function Game() {
       achievement,
     }
     localStorage.setItem(`game_${puzzleId}`, JSON.stringify(state))
+  }
+
+  const logGameCompletion = async () => {
+    try {
+      // Extract failed categories from guess history
+      const failedCategories = []
+      const colorToCategoryName = {
+        '🟨': puzzle.categories[0]?.name,
+        '🟩': puzzle.categories[1]?.name,
+        '🟦': puzzle.categories[2]?.name,
+        '🟪': puzzle.categories[3]?.name,
+      }
+
+      // Go through wrong guesses and collect unique category names
+      guessHistory
+        .filter(guess => !guess.correct)
+        .forEach(guess => {
+          guess.colors.forEach(color => {
+            const categoryName = colorToCategoryName[color]
+            if (categoryName && !failedCategories.includes(categoryName)) {
+              failedCategories.push(categoryName)
+            }
+          })
+        })
+
+      await fetch('/api/stats/log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          puzzleId: puzzle.id,
+          puzzleTitle: puzzle.title,
+          won: gameWon,
+          mistakes,
+          achievement,
+          failedCategories,
+        }),
+      })
+    } catch (error) {
+      console.error('Error logging game completion:', error)
+      // Don't show error to user - logging is not critical
+    }
   }
 
   const shuffleArray = (array) => {

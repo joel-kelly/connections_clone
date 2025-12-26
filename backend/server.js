@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import { getSheetsClient, fetchPuzzles, submitPuzzle } from './sheets.js'
+import { getSheetsClient, fetchPuzzles, submitPuzzle, logGamePlay, fetchPlayStats } from './sheets.js'
 
 dotenv.config()
 
@@ -137,6 +137,42 @@ app.post('/api/puzzles', async (req, res) => {
   } catch (error) {
     console.error('Error submitting puzzle:', error)
     res.status(500).json({ error: 'Failed to submit puzzle' })
+  }
+})
+
+// Log game play
+app.post('/api/stats/log', async (req, res) => {
+  try {
+    const { puzzleId, puzzleTitle, won, mistakes, achievement, failedCategories } = req.body
+
+    if (!puzzleId || won === undefined || mistakes === undefined) {
+      return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    const result = await logGamePlay({
+      puzzleId,
+      puzzleTitle,
+      won,
+      mistakes,
+      achievement,
+      failedCategories,
+    })
+
+    res.json(result)
+  } catch (error) {
+    console.error('Error logging play:', error)
+    res.status(500).json({ error: 'Failed to log play' })
+  }
+})
+
+// Get play stats
+app.get('/api/stats', async (req, res) => {
+  try {
+    const stats = await fetchPlayStats()
+    res.json(stats)
+  } catch (error) {
+    console.error('Error fetching stats:', error)
+    res.status(500).json({ error: 'Failed to fetch stats' })
   }
 })
 
