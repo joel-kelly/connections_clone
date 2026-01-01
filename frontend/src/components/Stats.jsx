@@ -45,6 +45,7 @@ function Stats() {
           losses: 0,
           totalMistakes: 0,
           achievements: {},
+          categoryFailures: {},
         }
       }
 
@@ -60,25 +61,16 @@ function Stats() {
       if (play.achievement) {
         ps.achievements[play.achievement] = (ps.achievements[play.achievement] || 0) + 1
       }
+
+      // Track failed categories for this puzzle
+      play.failedCategories.forEach(category => {
+        ps.categoryFailures[category] = (ps.categoryFailures[category] || 0) + 1
+      })
     })
 
     return Object.values(puzzleStats).sort((a, b) => b.totalPlays - a.totalPlays)
   }
 
-  // Calculate which categories are hardest
-  const calculateHardestCategories = () => {
-    const categoryFailures = {}
-
-    stats.forEach(play => {
-      play.failedCategories.forEach(category => {
-        categoryFailures[category] = (categoryFailures[category] || 0) + 1
-      })
-    })
-
-    return Object.entries(categoryFailures)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-  }
 
   // Calculate overall stats
   const calculateOverallStats = () => {
@@ -121,7 +113,6 @@ function Stats() {
   }
 
   const puzzleStats = calculatePuzzleStats()
-  const hardestCategories = calculateHardestCategories()
   const overallStats = calculateOverallStats()
 
   return (
@@ -220,31 +211,26 @@ function Stats() {
                       </div>
                     ))}
                   </div>
+
+                  {Object.keys(ps.categoryFailures).length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="text-xs text-gray-600 mb-2">Hardest categories:</div>
+                      <div className="flex gap-2 flex-wrap">
+                        {Object.entries(ps.categoryFailures)
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([category, count]) => (
+                            <div key={category} className="bg-red-50 rounded px-3 py-1 text-sm">
+                              <span className="font-semibold capitalize">{category}</span>
+                              <span className="text-gray-600 ml-1">({count})</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Hardest Categories */}
-          {hardestCategories.length > 0 && (
-            <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-              <h2 className="text-2xl font-bold mb-4">Hardest Categories</h2>
-              <p className="text-sm text-gray-600 mb-4">Categories that caused the most wrong guesses</p>
-              <div className="space-y-2">
-                {hardestCategories.map(([category, count], index) => (
-                  <div key={category} className="flex items-center gap-3">
-                    <div className="text-2xl font-bold text-gray-400 w-8">{index + 1}</div>
-                    <div className="flex-1 bg-gray-50 rounded-lg px-4 py-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">{category}</span>
-                        <span className="text-sm text-gray-600">{count} wrong guesses</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
