@@ -38,6 +38,13 @@ function Game() {
     }
   }, [words, selectedWords, foundCategories, mistakes, gameWon, gameLost, guessHistory, achievement, puzzle])
 
+  useEffect(() => {
+    // Log game completion to backend
+    if ((gameWon || gameLost) && puzzle && guessHistory.length > 0) {
+      logGameCompletion()
+    }
+  }, [gameWon, gameLost])
+
   const loadPuzzle = async () => {
     try {
       const response = await fetch(`/api/puzzles/${puzzleId}`)
@@ -101,6 +108,49 @@ function Game() {
       achievement,
     }
     localStorage.setItem(`game_${puzzleId}`, JSON.stringify(state))
+  }
+
+  const logGameCompletion = async () => {
+    try {
+      // Extract failed categories from guess history
+      const failedCategories = []
+      const colorToColorName = {
+        '🟨': 'yellow',
+        '🟩': 'green',
+        '🟦': 'blue',
+        '🟪': 'purple',
+      }
+
+      // Go through wrong guesses and collect unique color names
+      guessHistory
+        .filter(guess => !guess.correct)
+        .forEach(guess => {
+          guess.colors.forEach(color => {
+            const colorName = colorToColorName[color]
+            if (colorName && !failedCategories.includes(colorName)) {
+              failedCategories.push(colorName)
+            }
+          })
+        })
+
+      await fetch('/api/stats/log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          puzzleId: puzzle.id,
+          puzzleTitle: puzzle.title,
+          won: gameWon,
+          mistakes,
+          achievement,
+          failedCategories,
+        }),
+      })
+    } catch (error) {
+      console.error('Error logging game completion:', error)
+      // Don't show error to user - logging is not critical
+    }
   }
 
   const shuffleArray = (array) => {
@@ -170,9 +220,9 @@ function Game() {
         handleCorrectGuess(category, selectedTexts)
         return
       } else if (matches === 3) {
-        // One away
+        // One away - still counts as a mistake
         showMessage('One away!')
-        triggerShake()
+        handleWrongGuess(selectedTexts)
         return
       }
     }
@@ -196,7 +246,7 @@ function Game() {
     const categoryColor = colorMap[categoryIndex]
     // For correct guesses, all 4 words have the same color
     const newGuess = { words: guessedWords, colors: [categoryColor, categoryColor, categoryColor, categoryColor], correct: true }
-    setGuessHistory([...guessHistory, newGuess])
+    setGuessHistory(prev => [...prev, newGuess])
 
     // Remove found words
     const remainingWords = words.filter(w => !guessedWords.includes(w.text))
@@ -219,8 +269,20 @@ function Game() {
   }
 
   const handleWrongGuess = (guessedWords) => {
-    const newMistakes = mistakes + 1
-    setMistakes(newMistakes)
+    // Increment mistakes using functional update to avoid stale state
+    setMistakes(prev => {
+      const newMistakes = prev + 1
+
+      // Check if game is lost (need to do it here to have access to updated value)
+      if (newMistakes >= MAX_MISTAKES) {
+        setGameLost(true)
+        // Reveal all remaining categories when game is lost
+        setFoundCategories(puzzle.categories)
+        setWords([])
+      }
+
+      return newMistakes
+    })
 
     // Record the guess with actual colors of each word
     const colorMap = {
@@ -241,17 +303,10 @@ function Game() {
     })
 
     const newGuess = { words: guessedWords, colors: guessColors, correct: false }
-    setGuessHistory([...guessHistory, newGuess])
+    setGuessHistory(prev => [...prev, newGuess])
 
     setSelectedWords([])
     triggerShake()
-
-    if (newMistakes >= MAX_MISTAKES) {
-      setGameLost(true)
-      // Reveal all remaining categories when game is lost
-      setFoundCategories(puzzle.categories)
-      setWords([])
-    }
   }
 
   const triggerShake = () => {
