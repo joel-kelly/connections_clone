@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Circle, Plus, BarChart3 } from 'lucide-react'
+import { ArrowLeft, Circle, Plus, BarChart3, ArrowUpDown } from 'lucide-react'
 
 function PuzzleList() {
   const navigate = useNavigate()
   const [puzzles, setPuzzles] = useState([])
   const [loading, setLoading] = useState(true)
+  const [sortNewestFirst, setSortNewestFirst] = useState(true)
+  const [hideCompleted, setHideCompleted] = useState(false)
 
   useEffect(() => {
     fetchPuzzles()
@@ -19,9 +21,7 @@ function PuzzleList() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      // Sort puzzles by ID to maintain consistent order
-      const sortedPuzzles = data.sort((a, b) => a.id - b.id)
-      setPuzzles(sortedPuzzles)
+      setPuzzles(data)
     } catch (error) {
       console.error('Error fetching puzzles:', error)
       // Set empty array on error so UI still works
@@ -29,6 +29,21 @@ function PuzzleList() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Get sorted and filtered puzzles
+  const getDisplayedPuzzles = () => {
+    let filteredPuzzles = [...puzzles]
+
+    // Filter out completed puzzles if hideCompleted is true
+    if (hideCompleted) {
+      filteredPuzzles = filteredPuzzles.filter(puzzle => !isPuzzleCompleted(puzzle.id))
+    }
+
+    // Sort by ID (newest first or oldest first)
+    return filteredPuzzles.sort((a, b) =>
+      sortNewestFirst ? b.id - a.id : a.id - b.id
+    )
   }
 
   const getGameState = (puzzleId) => {
@@ -75,28 +90,50 @@ function PuzzleList() {
         </button>
       </div>
 
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-bold">Select a Puzzle</h1>
-        <div className="flex gap-2">
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-4xl font-bold">Select a Puzzle</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/stats')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <BarChart3 size={20} />
+              Stats
+            </button>
+            <button
+              onClick={() => navigate('/submit')}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <Plus size={20} />
+              Submit Puzzle
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/stats')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+            onClick={() => setSortNewestFirst(!sortNewestFirst)}
+            className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
           >
-            <BarChart3 size={20} />
-            Stats
+            <ArrowUpDown size={18} />
+            {sortNewestFirst ? 'Newest First' : 'Oldest First'}
           </button>
-          <button
-            onClick={() => navigate('/submit')}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
-          >
-            <Plus size={20} />
-            Submit Puzzle
-          </button>
+
+          <label className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer">
+            <input
+              type="checkbox"
+              checked={hideCompleted}
+              onChange={(e) => setHideCompleted(e.target.checked)}
+              className="w-4 h-4 rounded"
+            />
+            Hide Completed
+          </label>
         </div>
       </div>
 
       <div className="space-y-3">
-        {puzzles.map((puzzle, index) => {
+        {getDisplayedPuzzles().map((puzzle, index) => {
           const completed = isPuzzleCompleted(puzzle.id)
           const state = getGameState(puzzle.id)
           const badge = getAchievementBadge(puzzle.id)
@@ -143,10 +180,17 @@ function PuzzleList() {
         })}
       </div>
 
-      {puzzles.length === 0 && (
+      {getDisplayedPuzzles().length === 0 && puzzles.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <p>No puzzles available yet.</p>
           <p className="text-sm mt-2">Ask your family to submit some puzzles!</p>
+        </div>
+      )}
+
+      {getDisplayedPuzzles().length === 0 && puzzles.length > 0 && (
+        <div className="text-center py-12 text-gray-500">
+          <p>No puzzles match the current filters.</p>
+          <p className="text-sm mt-2">Try adjusting your filter settings.</p>
         </div>
       )}
     </div>
