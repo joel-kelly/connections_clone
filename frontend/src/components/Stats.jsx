@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, TrendingUp, Target, Award } from 'lucide-react'
+import { useSheetParam } from '../hooks/useSheetParam'
 
 function Stats() {
   const navigate = useNavigate()
+  const sheet = useSheetParam()
   const [stats, setStats] = useState([])
   const [loading, setLoading] = useState(true)
   const [puzzles, setPuzzles] = useState([])
 
   useEffect(() => {
-    loadData()
-  }, [])
+    // Only load data for default sheet
+    if (!sheet) {
+      loadData()
+    } else {
+      setLoading(false)
+    }
+  }, [sheet])
 
   const loadData = async () => {
     try {
@@ -104,6 +111,29 @@ function Stats() {
     'phew': 'Phew (3 mistakes)',
   }
 
+  // Show message if viewing tenant sheet
+  if (sheet) {
+    return (
+      <div className="min-h-screen max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-8 flex items-center justify-between">
+          <button
+            onClick={() => navigate(`/puzzles${sheet ? `?sheet=${sheet}` : ''}`)}
+            className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
+          >
+            <ArrowLeft size={20} />
+            Back
+          </button>
+          <h1 className="text-3xl font-bold">Puzzle Statistics</h1>
+          <div className="w-16"></div>
+        </div>
+        <div className="text-center text-gray-500 mt-12">
+          <p className="text-xl">Stats are only available for the main puzzle collection.</p>
+          <p className="mt-2">Stats tracking is disabled for this puzzle collection.</p>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -120,7 +150,7 @@ function Stats() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <button
-          onClick={() => navigate('/puzzles')}
+          onClick={() => navigate(`/puzzles${sheet ? `?sheet=${sheet}` : ''}`)}
           className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
         >
           <ArrowLeft size={20} />

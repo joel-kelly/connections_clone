@@ -33,7 +33,7 @@ export async function getSheetsClient() {
   }
 }
 
-export async function fetchPuzzles() {
+export async function fetchPuzzles(sheetName = 'Puzzles') {
   const client = await getSheetsClient()
 
   // If no Google Sheets connection, return sample data
@@ -50,7 +50,7 @@ export async function fetchPuzzles() {
 
     const response = await client.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Puzzles!A2:M', // Include Status column (M)
+      range: `${sheetName}!A2:M`, // Include Status column (M)
     })
 
     const rows = response.data.values
@@ -98,7 +98,7 @@ export async function fetchPuzzles() {
   }
 }
 
-export async function submitPuzzle(puzzleData) {
+export async function submitPuzzle(puzzleData, sheetName = 'Puzzles') {
   const client = await getSheetsClient()
 
   if (!client) {
@@ -112,7 +112,7 @@ export async function submitPuzzle(puzzleData) {
 
   try {
     // Get existing puzzles to determine next ID
-    const existingPuzzles = await fetchPuzzles()
+    const existingPuzzles = await fetchPuzzles(sheetName)
     const maxId = existingPuzzles.reduce((max, p) => Math.max(max, p.id), 0)
     const nextId = maxId + 1
 
@@ -136,7 +136,7 @@ export async function submitPuzzle(puzzleData) {
     // Append to sheet
     await client.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Puzzles!A:M',
+      range: `${sheetName}!A:M`,
       valueInputOption: 'RAW',
       requestBody: {
         values: [row],

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Eye, Send, Lock } from 'lucide-react'
+import { useSheetParam } from '../hooks/useSheetParam'
 
 // CategorySection component - MUST be outside main component to prevent focus loss
 const CategorySection = ({ color, label, bgColor, formData, updateFormData, updateWord, errors }) => (
@@ -45,6 +46,7 @@ const CategorySection = ({ color, label, bgColor, formData, updateFormData, upda
 
 function SubmitPuzzle() {
   const navigate = useNavigate()
+  const sheet = useSheetParam()
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -75,7 +77,10 @@ function SubmitPuzzle() {
     setCheckingPassword(true)
 
     try {
-      const response = await fetch('/api/validate-password', {
+      const url = sheet
+        ? `/api/validate-password?sheet=${encodeURIComponent(sheet)}`
+        : '/api/validate-password'
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
@@ -189,7 +194,10 @@ function SubmitPuzzle() {
     setSubmitError('')
 
     try {
-      const response = await fetch('/api/puzzles', {
+      const url = sheet
+        ? `/api/puzzles?sheet=${encodeURIComponent(sheet)}`
+        : '/api/puzzles'
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -225,7 +233,7 @@ function SubmitPuzzle() {
 
       setSubmitSuccess(true)
       // Redirect after 3 seconds
-      setTimeout(() => navigate('/puzzles'), 3000)
+      setTimeout(() => navigate(`/puzzles${sheet ? `?sheet=${sheet}` : ''}`), 3000)
     } catch (error) {
       console.error('Submit error:', error)
       if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
@@ -325,7 +333,7 @@ function SubmitPuzzle() {
             Your puzzle has been published and is now available to play.
           </p>
           <button
-            onClick={() => navigate('/puzzles')}
+            onClick={() => navigate(`/puzzles${sheet ? `?sheet=${sheet}` : ''}`)}
             className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
           >
             View Puzzles
@@ -344,7 +352,7 @@ function SubmitPuzzle() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate('/puzzles')}
+            onClick={() => navigate(`/puzzles${sheet ? `?sheet=${sheet}` : ''}`)}
             className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors mb-4"
           >
             <ArrowLeft size={20} />

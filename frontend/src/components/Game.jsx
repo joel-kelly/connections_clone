@@ -6,10 +6,12 @@ import WordGrid from './WordGrid'
 import CategoryDisplay from './CategoryDisplay'
 import Confetti from './Confetti'
 import AchievementToast from './AchievementToast'
+import { useSheetParam } from '../hooks/useSheetParam'
 
 function Game() {
   const { puzzleId } = useParams()
   const navigate = useNavigate()
+  const sheet = useSheetParam()
 
   const [puzzle, setPuzzle] = useState(null)
   const [words, setWords] = useState([])
@@ -47,12 +49,16 @@ function Game() {
 
   const loadPuzzle = async () => {
     try {
-      const response = await fetch(`/api/puzzles/${puzzleId}`)
+      const url = sheet
+        ? `/api/puzzles/${puzzleId}?sheet=${encodeURIComponent(sheet)}`
+        : `/api/puzzles/${puzzleId}`
+      const response = await fetch(url)
       const data = await response.json()
       setPuzzle(data)
 
       // Try to load saved game state
-      const savedState = localStorage.getItem(`game_${puzzleId}`)
+      const storageKey = sheet ? `game_${sheet}_${puzzleId}` : `game_${puzzleId}`
+      const savedState = localStorage.getItem(storageKey)
       if (savedState) {
         const state = JSON.parse(savedState)
         // Load saved state if game is completed or has progress
@@ -107,10 +113,16 @@ function Game() {
       guessHistory,
       achievement,
     }
-    localStorage.setItem(`game_${puzzleId}`, JSON.stringify(state))
+    const storageKey = sheet ? `game_${sheet}_${puzzleId}` : `game_${puzzleId}`
+    localStorage.setItem(storageKey, JSON.stringify(state))
   }
 
   const logGameCompletion = async () => {
+    // Skip logging for tenant sheets (stats disabled)
+    if (sheet) {
+      return
+    }
+
     try {
       // Extract failed categories from guess history
       const failedCategories = []
@@ -381,7 +393,8 @@ function Game() {
 
   const handlePlayAgain = () => {
     // Clear saved state and restart
-    localStorage.removeItem(`game_${puzzleId}`)
+    const storageKey = sheet ? `game_${sheet}_${puzzleId}` : `game_${puzzleId}`
+    localStorage.removeItem(storageKey)
     loadPuzzle()
     setSelectedWords([])
     setFoundCategories([])
@@ -422,7 +435,7 @@ function Game() {
       {/* Header */}
       <div className="mb-3 md:mb-6 flex items-center justify-between">
         <button
-          onClick={() => navigate('/puzzles')}
+          onClick={() => navigate(`/puzzles${sheet ? `?sheet=${sheet}` : ''}`)}
           className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
         >
           <ArrowLeft size={20} />

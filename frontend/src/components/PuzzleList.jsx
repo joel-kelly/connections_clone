@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Circle, Plus, BarChart3, ArrowUpDown } from 'lucide-react'
+import { useSheetParam } from '../hooks/useSheetParam'
 
 function PuzzleList() {
   const navigate = useNavigate()
+  const sheet = useSheetParam()
   const [puzzles, setPuzzles] = useState([])
   const [loading, setLoading] = useState(true)
   const [sortNewestFirst, setSortNewestFirst] = useState(true)
@@ -12,11 +14,14 @@ function PuzzleList() {
 
   useEffect(() => {
     fetchPuzzles()
-  }, [])
+  }, [sheet])
 
   const fetchPuzzles = async () => {
     try {
-      const response = await fetch('/api/puzzles')
+      const url = sheet
+        ? `/api/puzzles?sheet=${encodeURIComponent(sheet)}`
+        : '/api/puzzles'
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -47,7 +52,10 @@ function PuzzleList() {
   }
 
   const getGameState = (puzzleId) => {
-    const saved = localStorage.getItem(`game_${puzzleId}`)
+    const storageKey = sheet
+      ? `game_${sheet}_${puzzleId}`
+      : `game_${puzzleId}`
+    const saved = localStorage.getItem(storageKey)
     return saved ? JSON.parse(saved) : null
   }
 
@@ -94,15 +102,17 @@ function PuzzleList() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-4xl font-bold">Select a Puzzle</h1>
           <div className="flex gap-2">
+            {!sheet && (
+              <button
+                onClick={() => navigate('/stats')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <BarChart3 size={20} />
+                Stats
+              </button>
+            )}
             <button
-              onClick={() => navigate('/stats')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <BarChart3 size={20} />
-              Stats
-            </button>
-            <button
-              onClick={() => navigate('/submit')}
+              onClick={() => navigate(`/submit${sheet ? `?sheet=${sheet}` : ''}`)}
               className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
             >
               <Plus size={20} />
@@ -146,7 +156,7 @@ function PuzzleList() {
               transition={{ delay: index * 0.05 }}
             >
               <button
-                onClick={() => navigate(`/play/${puzzle.id}`)}
+                onClick={() => navigate(`/play/${puzzle.id}${sheet ? `?sheet=${sheet}` : ''}`)}
                 className="w-full bg-white rounded-lg p-4 shadow-sm hover:shadow-md
                          transition-all border border-gray-200 text-left"
               >

@@ -7,7 +7,31 @@ dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3070
-const SUBMIT_PASSWORD = process.env.SUBMIT_PASSWORD || 'kellyconnect'
+
+// Sheet configurations with passwords and stats settings
+const SHEET_CONFIGS = {
+  'Puzzles': {
+    submitPassword: process.env.SUBMIT_PASSWORD || 'kellyconnect',
+    enableStats: true
+  },
+  'Aoife_Puzzles': {
+    submitPassword: process.env.AOIFE_SUBMIT_PASSWORD || 'aoifeconnect',
+    enableStats: false
+  }
+}
+
+const DEFAULT_SHEET = 'Puzzles'
+
+// Helper function to get validated sheet name from query parameter
+function getValidatedSheetName(req) {
+  const sheetParam = req.query.sheet || DEFAULT_SHEET
+  return SHEET_CONFIGS[sheetParam] ? sheetParam : DEFAULT_SHEET
+}
+
+// Helper function to get sheet configuration
+function getSheetConfig(sheetName) {
+  return SHEET_CONFIGS[sheetName] || SHEET_CONFIGS[DEFAULT_SHEET]
+}
 
 app.use(cors())
 app.use(express.json())
@@ -20,7 +44,8 @@ app.get('/api/health', (req, res) => {
 // Get all puzzles
 app.get('/api/puzzles', async (req, res) => {
   try {
-    const puzzles = await fetchPuzzles()
+    const sheetName = getValidatedSheetName(req)
+    const puzzles = await fetchPuzzles(sheetName)
     res.json(puzzles)
   } catch (error) {
     console.error('Error fetching puzzles:', error)
@@ -31,7 +56,8 @@ app.get('/api/puzzles', async (req, res) => {
 // Get specific puzzle
 app.get('/api/puzzles/:id', async (req, res) => {
   try {
-    const puzzles = await fetchPuzzles()
+    const sheetName = getValidatedSheetName(req)
+    const puzzles = await fetchPuzzles(sheetName)
     const puzzle = puzzles.find(p => p.id === parseInt(req.params.id))
 
     if (!puzzle) {
@@ -48,8 +74,10 @@ app.get('/api/puzzles/:id', async (req, res) => {
 // Validate password
 app.post('/api/validate-password', (req, res) => {
   const { password } = req.body
+  const sheetName = getValidatedSheetName(req)
+  const config = getSheetConfig(sheetName)
 
-  if (password === SUBMIT_PASSWORD) {
+  if (password === config.submitPassword) {
     res.json({ valid: true })
   } else {
     res.status(401).json({ valid: false, error: 'Invalid password' })
@@ -60,9 +88,11 @@ app.post('/api/validate-password', (req, res) => {
 app.post('/api/puzzles', async (req, res) => {
   try {
     const { password, puzzleData } = req.body
+    const sheetName = getValidatedSheetName(req)
+    const config = getSheetConfig(sheetName)
 
     // Validate password
-    if (password !== SUBMIT_PASSWORD) {
+    if (password !== config.submitPassword) {
       return res.status(401).json({ error: 'Invalid password' })
     }
 
@@ -127,7 +157,7 @@ app.post('/api/puzzles', async (req, res) => {
     }
 
     // Submit to Google Sheets
-    const result = await submitPuzzle(puzzleData)
+    const result = await submitPuzzle(puzzleData, sheetName)
 
     res.json({
       success: true,
@@ -143,6 +173,14 @@ app.post('/api/puzzles', async (req, res) => {
 // Log game play
 app.post('/api/stats/log', async (req, res) => {
   try {
+    const sheetName = getValidatedSheetName(req)
+    const config = getSheetConfig(sheetName)
+
+    // Only log stats for sheets with stats enabled
+    if (!config.enableStats) {
+      return res.json({ success: true, message: 'Stats logging disabled for this sheet' })
+    }
+
     const { puzzleId, puzzleTitle, won, mistakes, achievement, failedCategories } = req.body
 
     if (!puzzleId || won === undefined || mistakes === undefined) {
@@ -168,6 +206,14 @@ app.post('/api/stats/log', async (req, res) => {
 // Get play stats
 app.get('/api/stats', async (req, res) => {
   try {
+    const sheetName = getValidatedSheetName(req)
+    const config = getSheetConfig(sheetName)
+
+    // Only return stats for sheets with stats enabled
+    if (!config.enableStats) {
+      return res.json([])
+    }
+
     const stats = await fetchPlayStats()
     res.json(stats)
   } catch (error) {
