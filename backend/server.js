@@ -114,6 +114,12 @@ app.post('/api/puzzles', async (req, res) => {
       if (!Array.isArray(puzzleData[wordsKey]) || puzzleData[wordsKey].length !== 4) {
         return res.status(400).json({ error: `${color} category must have exactly 4 words` })
       }
+
+      // Check that all words are non-empty strings
+      const nonEmptyWords = puzzleData[wordsKey].filter(w => w && w.trim())
+      if (nonEmptyWords.length !== 4) {
+        return res.status(400).json({ error: `${color} category must have exactly 4 non-empty words` })
+      }
     }
 
     // Check for duplicate words

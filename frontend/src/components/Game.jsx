@@ -548,7 +548,7 @@ function Game() {
             Play Again
           </button>
           <button
-            onClick={() => navigate('/puzzles')}
+            onClick={() => navigate(`/puzzles${sheet ? `?sheet=${sheet}` : ''}`)}
             className="w-full py-2.5 md:py-3 px-3 md:px-4 border-2 border-gray-300 rounded-full font-semibold text-sm md:text-base
                      hover:bg-gray-50 transition-colors"
           >

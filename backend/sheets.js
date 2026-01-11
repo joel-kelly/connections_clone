@@ -64,12 +64,8 @@ export async function fetchPuzzles(sheetName = 'Puzzles') {
         const status = (row[12] || 'published').toLowerCase().trim()
         return status === 'published'
       })
-      .map((row, index) => ({
-        id: parseInt(row[0]) || index + 1,
-        title: row[1] || `Puzzle ${index + 1}`,
-        author: row[2] || '',
-        dateCreated: row[3] || '',
-        categories: [
+      .map((row, index) => {
+        const categories = [
           {
             difficulty: 0,
             name: row[4] || 'Yellow Category',
@@ -90,8 +86,34 @@ export async function fetchPuzzles(sheetName = 'Puzzles') {
             name: row[10] || 'Purple Category',
             words: (row[11] || '').split(',').map(w => w.trim()).filter(Boolean),
           },
-        ],
-      }))
+        ]
+
+        // Validate that each category has exactly 4 words
+        categories.forEach((category, idx) => {
+          if (category.words.length !== 4) {
+            console.warn(
+              `Puzzle "${row[1]}" (ID: ${row[0]}) has invalid ${['yellow', 'green', 'blue', 'purple'][idx]} category: ` +
+              `expected 4 words but got ${category.words.length}. Words: ${category.words.join(', ')}`
+            )
+          }
+        })
+
+        return {
+          id: parseInt(row[0]) || index + 1,
+          title: row[1] || `Puzzle ${index + 1}`,
+          author: row[2] || '',
+          dateCreated: row[3] || '',
+          categories,
+        }
+      })
+      .filter(puzzle => {
+        // Filter out puzzles with invalid categories (not exactly 4 words per category)
+        const allValid = puzzle.categories.every(cat => cat.words.length === 4)
+        if (!allValid) {
+          console.warn(`Skipping puzzle "${puzzle.title}" (ID: ${puzzle.id}) due to invalid category word counts`)
+        }
+        return allValid
+      })
   } catch (error) {
     console.error('Error fetching from Google Sheets:', error)
     return getSamplePuzzles()
